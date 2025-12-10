@@ -6,11 +6,14 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"io"
 	stdlog "log"
 	"os"
 	"sync"
+
+	"github.com/zeromicro/go-zero/core/logc"
 )
 
 // Base supports logging at various log levels.
@@ -70,6 +73,39 @@ func (l *baseLogger) prefixPrint(prefix string, args ...interface{}) {
 	l.Print(args...)
 }
 
+// /////////////////////// go-zero logger adapter /////////////////////////
+type zeroLogger struct{}
+
+func newZeroLogger() *zeroLogger {
+	return &zeroLogger{}
+}
+
+func (l *zeroLogger) Debug(args ...interface{}) {
+	logc.Debugf(context.TODO(), "%v", args...)
+}
+
+// Info logs a message at Info level.
+func (l *zeroLogger) Info(args ...interface{}) {
+	logc.Infof(context.TODO(), "%v", args...)
+}
+
+// Warn logs a message at Warning level.
+func (l *zeroLogger) Warn(args ...interface{}) {
+	logc.Slowf(context.TODO(), "%v", args...)
+}
+
+// Error logs a message at Error level.
+func (l *zeroLogger) Error(args ...interface{}) {
+	logc.Errorf(context.TODO(), "%v", args...)
+}
+
+// Fatal logs a message at Fatal level
+// and process will exit with status set to 1.
+func (l *zeroLogger) Fatal(args ...interface{}) {
+	logc.Errorf(context.TODO(), "%v", args...)
+	os.Exit(1)
+}
+
 // newBase creates and returns a new instance of baseLogger.
 func newBase(out io.Writer) *baseLogger {
 	prefix := fmt.Sprintf("asynq: pid=%d ", os.Getpid())
@@ -82,7 +118,7 @@ func newBase(out io.Writer) *baseLogger {
 // Log level is set to DebugLevel by default.
 func NewLogger(base Base) *Logger {
 	if base == nil {
-		base = newBase(os.Stderr)
+		base = newZeroLogger()
 	}
 	return &Logger{base: base, level: DebugLevel}
 }
