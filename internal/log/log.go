@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/logc"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // Base supports logging at various log levels.
@@ -76,7 +77,12 @@ func (l *baseLogger) prefixPrint(prefix string, args ...interface{}) {
 // /////////////////////// go-zero logger adapter /////////////////////////
 type zeroLogger struct{}
 
-func newZeroLogger() *zeroLogger {
+func newZeroLogger(level Level) *zeroLogger {
+	logx.MustSetup(logx.LogConf{
+		ServiceName: "asynq",
+		Encoding:    "json",
+		Level:       level.String(),
+	})
 	return &zeroLogger{}
 }
 
@@ -117,9 +123,7 @@ func newBase(out io.Writer) *baseLogger {
 // NewLogger creates and returns a new instance of Logger.
 // Log level is set to DebugLevel by default.
 func NewLogger(base Base) *Logger {
-	if base == nil {
-		base = newZeroLogger()
-	}
+	base = newZeroLogger(ErrorLevel)
 	return &Logger{base: base, level: DebugLevel}
 }
 
